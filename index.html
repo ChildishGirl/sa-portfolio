@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Anna Pastushko | Solutions Architect</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Anna Pastushko - AWS Solutions Architect and Data/ML Infrastructure Specialist portfolio.">
+    <meta name="keywords" content="AWS, Solutions Architect, Cloud Architect, Machine Learning, ML, AI, Data, Manual of Me, Anna Pastushko">
+    <meta name="author" content="Anna Pastushko">
+    
+     <!-- Preconnect to CDNs for faster loading -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown.min.css">
+    <script src="/_vercel/insights/script.js"></script>
+    <style>
+        /* Force white background for the entire page */
+        body { background-color: #ffffff; margin: 0; }
+        
+        .markdown-body {
+            box-sizing: border-box;
+            min-width: 200px; 
+            max-width: 980px;
+            margin: 0 auto; 
+            padding: 45px;
+            background-color: #ffffff !important; 
+            color: #24292f !important;
+        }
+
+        /* Loading state styling */
+        #content:empty {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: #6e7781;
+            opacity: 0.7;
+        }
+
+        /* Link Styling */
+        .markdown-body a { 
+            color: #0969da !important; 
+            text-decoration: none; 
+        }
+        .markdown-body a:hover { 
+            text-decoration: underline; 
+        }
+
+        /* Base Image Styling */
+        .markdown-body img { 
+            background-color: transparent !important; 
+            color-scheme: light;
+            transition: opacity 0.2s;
+            cursor: zoom-in !important;
+        }
+
+        /* Linked images: pointer on anchor */
+        .markdown-body a img {
+            cursor: pointer !important;
+        }
+
+        .markdown-body a img:hover {
+            opacity: 0.8;
+        }
+
+        /* Lightbox (Modal) Styling */
+        #lightbox {
+            display: none;
+            position: fixed;
+            z-index: 999;
+            top: 0; left: 0; 
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            justify-content: center; 
+            align-items: center;
+        }
+        #lightbox img {
+            max-width: 90%; 
+            max-height: 90%;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            cursor: zoom-out;
+        }
+
+        @media (max-width: 767px) { 
+            .markdown-body { padding: 15px; } 
+        }
+        
+        /* Prevent browser dark-mode filters on images */
+        @media (prefers-color-scheme: dark) { 
+            .markdown-body img { filter: none !important; } 
+        }
+    </style>
+</head>
+<body>
+    <article class="markdown-body" id="content">Loading content...</article>
+    
+    <div id="lightbox" onclick="this.style.display='none'">
+        <img src="" id="lightbox-img" alt="Fullscreen preview">
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        const contentContainer = document.getElementById('content');
+        const lightboxOverlay = document.getElementById('lightbox');
+        const lightboxImage = document.getElementById('lightbox-img');
+
+        /**
+         * Fetches and renders the Markdown file.
+         * @param {string} fileName - The name of the .md file to load.
+         * @param {boolean} updateHistory - Whether to push a new entry to browser history.
+         */
+        function renderMarkdown(fileName, updateHistory = true) {
+            fetch(fileName)
+                .then(response => {
+                    if (!response.ok) throw new Error('File not found');
+                    return response.text();
+                })
+                .then(markdownText => {
+                    contentContainer.innerHTML = marked.parse(markdownText);
+                    
+                    if (updateHistory) {
+                        // Clean URL for README, keep hash for other pages
+                        const urlPath = fileName === 'README.md' ? '/' : `#${fileName}`;
+                        window.history.pushState({ file: fileName }, '', urlPath);
+                    }
+                })
+                .catch(error => {
+                    contentContainer.innerHTML = `<h1>Error</h1><p>Could not load ${fileName}</p>`;
+                    console.error('Fetch error:', error);
+                });
+        }
+
+        // Global Click Listener
+        contentContainer.addEventListener('click', (event) => {
+            const element = event.target;
+
+            // 1. Image Click Handling
+            if (element.tagName === 'IMG') {
+                const isInsideLink = element.closest('a');
+                // Open lightbox only if the image is NOT a link
+                if (!isInsideLink) {
+                    lightboxImage.src = element.src;
+                    lightboxOverlay.style.display = 'flex';
+                    return;
+                }
+            }
+
+            // 2. Navigation Link Handling
+            const linkElement = element.closest('a');
+            if (linkElement) {
+                const destination = linkElement.getAttribute('href');
+                // Check if the link points to a local .md file
+                if (destination && destination.endsWith('.md') && !destination.startsWith('http')) {
+                    event.preventDefault();
+                    renderMarkdown(destination);
+                    window.scrollTo(0, 0);
+                }
+            }
+        });
+
+        // Browser Back/Forward Button Navigation
+        window.addEventListener('popstate', (event) => {
+            const targetFile = (event.state && event.state.file) ? event.state.file : 'README.md';
+            renderMarkdown(targetFile, false);
+        });
+
+        // Initial Page Load Logic
+        const initialFile = window.location.hash ? window.location.hash.substring(1) : 'README.md';
+        renderMarkdown(initialFile);
+        
+        // Clean URL on initial load if it's README
+        if (initialFile === 'README.md' && window.location.hash) {
+            window.history.replaceState({ file: 'README.md' }, '', '/');
+        }
+    </script>
+</body>
+</html>
