@@ -31,6 +31,33 @@ You can find more information about me in my [Manual of me](ManualOfMe.md).
 # Projects
 **All case studies represent anonymized client work. Specific implementations and business details have been generalized to protect client confidentiality.**
 
+## 🏛 Insurance knowledge retrieval solution
+**Industry:** Insurance
+
+### Problem
+
+The insurance provider manages an extensive knowledge base of multi-page policy contracts, coverage tables, and state-specific underwriting guidelines. Navigating these documents is highly inefficient for claim adjusters and underwriters — critical disclaimers and coverage limitations are frequently separated from primary text clauses. Additionally, historical claim case files contain embedded PHI and PII, requiring strict data governance before the knowledge base can be queried.
+
+### Solution
+The solution implements a hybrid RAG architecture with a unified search layer, enabling claim adjusters and underwriters to retrieve precise policy information through natural language queries while keeping all sensitive data within the AWS network boundary.
+
+Processing Architecture: Amazon OpenSearch serves as the unified search layer, handling both dense vector and sparse keyword retrieval in a single database. Bedrock Knowledge Bases was ruled out due to insufficient control over chunking and parsing of complex policy tables. A dedicated vector database like Milvus was ruled out to avoid deploying, securing, and syncing two separate systems. All embeddings, reranking, and LLM inference run on Amazon Bedrock, ensuring PHI and PII never leave the AWS network boundary. Amazon Bedrock Prompt Management is integrated alongside Git — Git remains the single source of truth, and the CI/CD pipeline pushes validated prompt updates directly to Bedrock, allowing production containers to consume them without container rebuilds.
+
+LLMOps & Evaluation Pipeline: GitHub Actions and the Ragas framework automate prompt regression testing on every commit, using Bedrock as LLM-as-a-Judge instead of manual review. Evaluation scores are logged to DynamoDB keyed by Commit SHA, chosen over a relational database to scale to zero between pipeline runs and save over 90% in costs for this intermittent, non-daily traffic. Failed score thresholds automatically block deployment, replacing manual prompt reviews with an automated quality gate.
+
+Observability: A self-hosted Langfuse server captures token usage, prompt variables, and RAG retrieval steps at the application level. Native CloudWatch Bedrock metrics were ruled out as the primary ML observability tool — they lack prompt-level granularity ML engineers need. Langfuse consolidates all LLM quality signals into a single purpose-built UI, avoiding scattering them across tools. DevOps continues monitoring infrastructure health and runtime errors exclusively in CloudWatch, the tool they already operate. CloudTrail provides a dedicated audit log for AWS API access and infrastructure governance, supporting compliance requirements around PHI access.
+
+<img src="images/knowledge-retrieval-solution.png">
+
+My responsibilities included:
+- Designed hybrid RAG architecture with unified OpenSearch search layer for complex insurance document retrieval
+- Defined data governance approach for PHI/PII handling within AWS network boundary
+- Designed LLMOps evaluation pipeline with automated deployment gates and cost-optimized metric storage
+- Established observability strategy with tool separation between ML engineers and DevOps teams
+- Created technical documentation including architecture diagrams and ADRs
+
+**Technology stack:** Amazon OpenSearch, Amazon Bedrock, ECS, DynamoDB, Langfuse, GitHub.
+
 ## 🏛 GenerativeAI-powered chatbot solution
 **Industry:** Retail
 
